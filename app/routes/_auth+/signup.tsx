@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
 				ctx.addIssue({
 					path: ['email'],
 					code: z.ZodIssueCode.custom,
-					message: 'A user already exists with this email',
+					message: 'Il existe déjà un utilisateur avec cette adresse email',
 				})
 				return
 			}
@@ -71,7 +71,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const response = await sendEmail({
 		to: email,
-		subject: `Welcome to Epic Notes!`,
+		subject: `Bienvenue sur Raywom!`,
 		react: <SignupEmail onboardingUrl={verifyUrl.toString()} otp={otp} />,
 	})
 
@@ -100,15 +100,15 @@ export function SignupEmail({
 		<E.Html lang="en" dir="ltr">
 			<E.Container>
 				<h1>
-					<E.Text>Welcome to Epic Notes!</E.Text>
+					<E.Text>Bienvenue sur Raywom !</E.Text>
 				</h1>
 				<p>
 					<E.Text>
-						Here's your verification code: <strong>{otp}</strong>
+						Voici vortre code de vérification: <strong>{otp}</strong>
 					</E.Text>
 				</p>
 				<p>
-					<E.Text>Or click the link to get started:</E.Text>
+					<E.Text>Ou clickez sur le lien pour commencer :</E.Text>
 				</p>
 				<E.Link href={onboardingUrl}>{onboardingUrl}</E.Link>
 			</E.Container>
@@ -117,7 +117,7 @@ export function SignupEmail({
 }
 
 export const meta: MetaFunction = () => {
-	return [{ title: 'Sign Up | Epic Notes' }]
+	return [{ title: 'Inscription | Raywom' }]
 }
 
 export default function SignupRoute() {
@@ -140,9 +140,9 @@ export default function SignupRoute() {
 	return (
 		<div className="container flex flex-col justify-center pb-32 pt-20">
 			<div className="text-center">
-				<h1 className="text-h1">Let's start your journey!</h1>
+				<h1 className="text-h1">L'aventure Raywom commence !</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your email.
+					Entrez votre email
 				</p>
 			</div>
 			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">
@@ -167,7 +167,7 @@ export default function SignupRoute() {
 						type="submit"
 						disabled={isPending}
 					>
-						Submit
+						Valider
 					</StatusButton>
 				</Form>
 				<ul className="mt-5 flex flex-col gap-5 border-b-2 border-t-2 border-border py-3">

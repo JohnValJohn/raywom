@@ -23,6 +23,7 @@ import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import appleTouchIconAssetUrl from './assets/favicons/apple-touch-icon.png'
 import faviconAssetUrl from './assets/favicons/favicon.svg'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
+import { HomeButton } from './components/HomeButton.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { useToast } from './components/toaster.tsx'
@@ -209,6 +210,7 @@ function App() {
 	const theme = useTheme()
 	const matches = useMatches()
 	const isOnLoginPage = !!matches.find((m) => m.id === 'routes/_auth+/login')
+	const isOnSignupPage = !!matches.find((m) => m.id === 'routes/_auth+/signup')
 	// const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
 	// const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
@@ -217,8 +219,8 @@ function App() {
 		<>
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6">
-					<nav className="flex items-center justify-end gap-4 md:gap-8">
-						{/* <Logo /> */}
+					<nav className="flex items-center justify-between gap-4 md:gap-8">
+						<HomeButton />
 						{/* <div className="ml-auto hidden max-w-sm flex-1 sm:block">
 							{searchBar}
 						</div> */}
@@ -226,11 +228,18 @@ function App() {
 							{user ? (
 								<UserDropdown />
 							) : (
-								!isOnLoginPage && (
-									<Button asChild variant="default" size="lg">
-										<Link to="/login">Connection</Link>
-									</Button>
-								)
+								<>
+									{!isOnLoginPage && (
+										<Button asChild variant="secondary" size="lg">
+											<Link to="/login">Connection</Link>
+										</Button>
+									)}
+									{!isOnSignupPage && (
+										<Button asChild variant="default" size="lg">
+											<Link to="/signup">Inscription</Link>
+										</Button>
+									)}
+								</>
 							)}
 						</div>
 						{/* <div className="block w-full sm:hidden">{searchBar}</div> */}
