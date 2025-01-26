@@ -49,9 +49,9 @@ export default function VerifyRoute() {
 
 	const checkEmail = (
 		<>
-			<h1 className="text-h1">Check your email</h1>
+			<h1 className="text-h1">Consultez vos emails</h1>
 			<p className="mt-3 text-body-md text-muted-foreground">
-				We've sent you a code to verify your email address.
+				Nous vous avons envoyé un code pour valider votre adresse email
 			</p>
 		</>
 	)
@@ -62,9 +62,11 @@ export default function VerifyRoute() {
 		'change-email': checkEmail,
 		'2fa': (
 			<>
-				<h1 className="text-h1">Check your 2FA app</h1>
+				<h1 className="text-h1">
+					Consultez votre application d'authentification à 2 facteurs (2FA)
+				</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your 2FA code to verify your identity.
+					Entrez votre code 2FA pour confirmer votre identité.
 				</p>
 			</>
 		),
@@ -131,7 +133,7 @@ export default function VerifyRoute() {
 							type="submit"
 							disabled={isPending}
 						>
-							Submit
+							Confirmer
 						</StatusButton>
 					</Form>
 				</div>

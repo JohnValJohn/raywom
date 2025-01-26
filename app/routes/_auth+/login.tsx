@@ -204,7 +204,7 @@ export default function LoginPage() {
 }
 
 export const meta: MetaFunction = () => {
-	return [{ title: 'Connection à Raywom' }]
+	return [{ title: 'Raywom | Connection' }]
 }
 
 export function ErrorBoundary() {
