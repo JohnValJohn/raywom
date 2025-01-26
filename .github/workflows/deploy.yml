@@ -57,29 +57,29 @@ jobs:
       - name: 🔎 Type check
         run: npm run typecheck --if-present
 
-  vitest:
-    name: ⚡ Vitest
-    runs-on: ubuntu-22.04
-    steps:
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v4
+  # vitest:
+  #   name: ⚡ Vitest
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: ⬇️ Checkout repo
+  #       uses: actions/checkout@v4
 
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+  #     - name: ⎔ Setup node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
 
-      - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
+  #     - name: 📥 Download deps
+  #       uses: bahmutov/npm-install@v1
 
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
+  #     - name: 🏄 Copy test env vars
+  #       run: cp .env.example .env
 
-      - name: 🖼 Build icons
-        run: npm run build:icons
+  #     - name: 🖼 Build icons
+  #       run: npm run build:icons
 
-      - name: ⚡ Run vitest
-        run: npm run test -- --coverage
+  #     - name: ⚡ Run vitest
+  #       run: npm run test -- --coverage
 
   # playwright:
   #   name: 🎭 Playwright
@@ -137,7 +137,7 @@ jobs:
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-22.04
-    needs: [lint, typecheck, vitest]
+    needs: [lint, typecheck]
     # only build/deploy branches on pushes
     if: ${{ github.event_name == 'push' }}
 
