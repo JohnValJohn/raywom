@@ -160,7 +160,7 @@ export default function EditUserProfile() {
 						<Icon name="link-2">Manage connections</Icon>
 					</Link>
 				</div>
-				<div>
+				{/* <div>
 					<Link
 						reloadDocument
 						download="my-epic-notes-data.json"
@@ -168,7 +168,7 @@ export default function EditUserProfile() {
 					>
 						<Icon name="download">Download your data</Icon>
 					</Link>
-				</div>
+				</div> */}
 				<SignOutOfSessions />
 				<DeleteData />
 			</div>
