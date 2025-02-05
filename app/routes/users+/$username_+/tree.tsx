@@ -21,12 +21,12 @@ export async function loader({ params }: LoaderFunctionArgs) {
 	return json({ user })
 }
 
-export default function PitchRoute() {
+export default function TreeRoute() {
 	// const data = useLoaderData<typeof loader>()
 	// const user = useOptionalUser()
 	return (
 		<main className="container flex h-full min-h-[400px] px-0 pb-12 md:px-8">
-			<div>En construction</div>
+			<div>Arbre de recommandations en construction</div>
 		</main>
 	)
 }

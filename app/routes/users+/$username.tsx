@@ -64,6 +64,12 @@ export default function ProfileRoute() {
 						<span>Pitch video</span>
 					</span>
 				</Link>
+				<Link to={`/users/${user.username}/tree`}>
+					<span className="flex flex-col">
+						<Icon name="recommendation-tree" className="text-body-2xl"></Icon>
+						<span>Arbre de recommandations</span>
+					</span>
+				</Link>
 				<div className="flex flex-col items-center">
 					<div className="flex flex-wrap items-center justify-center gap-4">
 						<h1 className="text-center text-h2">{userDisplayName}</h1>

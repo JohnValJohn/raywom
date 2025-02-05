@@ -234,7 +234,7 @@ function App() {
 								<>
 									{!isOnLoginPage && (
 										<Button asChild variant="secondary" size="lg">
-											<Link to="/login">Connection</Link>
+											<Link to="/login">Connexion</Link>
 										</Button>
 									)}
 									{!isOnSignupPage && (
