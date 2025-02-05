@@ -8,6 +8,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
+import { useState } from 'react'
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const user = await prisma.user.findFirst({
@@ -34,6 +35,8 @@ export default function ProfileRoute() {
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
+	const [isRecommending, setIsRecommending] = useState(false)
+	const [isListening, setIsListening] = useState(false)
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
@@ -58,14 +61,35 @@ export default function ProfileRoute() {
 					<div className="flex flex-wrap items-center justify-center gap-4">
 						<h1 className="text-center text-h2">{userDisplayName}</h1>
 					</div>
+					<div className="flex gap-2">
+						<Button
+							variant={isRecommending ? 'accent' : 'secondary'}
+							size="roundIcon"
+							onClick={() => {
+								setIsRecommending(!isRecommending)
+							}}
+						>
+							<Icon name="mouth"></Icon>
+						</Button>
+						<Button
+							variant={isListening ? 'accent' : 'secondary'}
+							size="roundIcon"
+							onClick={() => {
+								setIsListening(!isListening)
+							}}
+							// className="bg-accent text-accent-foreground"
+						>
+							<Icon name="ear"></Icon>
+						</Button>
+					</div>
 					<p className="mt-2 text-center text-muted-foreground">
-						Joined {data.userJoinedDisplay}
+						Profil créé le {data.userJoinedDisplay}
 					</p>
 					{isLoggedInUser ? (
 						<Form action="/logout" method="POST" className="mt-3">
 							<Button type="submit" variant="link" size="pill">
 								<Icon name="exit" className="scale-125 max-md:scale-150">
-									Logout
+									Déconnexion
 								</Icon>
 							</Button>
 						</Form>
@@ -81,7 +105,7 @@ export default function ProfileRoute() {
 								</Button> */}
 									<Button asChild>
 										<Link to="/settings/profile" prefetch="intent">
-											Edit profile
+											Modifier le profil
 										</Link>
 									</Button>
 								</>

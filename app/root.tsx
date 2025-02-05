@@ -38,7 +38,7 @@ import {
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
 import {
-	// ThemeSwitch,
+	ThemeSwitch,
 	useOptionalTheme,
 	useTheme,
 } from './routes/resources+/theme-switch.tsx'
@@ -220,7 +220,10 @@ function App() {
 			<div className="flex min-h-screen flex-col justify-between">
 				<header className="container py-6">
 					<nav className="flex items-center justify-between gap-4 md:gap-8">
-						<HomeButton />
+						<div className="flex gap-2 align-middle">
+							<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
+							<HomeButton />
+						</div>
 						{/* <div className="ml-auto hidden max-w-sm flex-1 sm:block">
 							{searchBar}
 						</div> */}
@@ -336,7 +339,7 @@ function UserDropdown() {
 					>
 						<Form action="/logout" method="POST" ref={formRef}>
 							<Icon className="text-body-md" name="exit">
-								<button type="submit">Logout</button>
+								<button type="submit">Déconnexion</button>
 							</Icon>
 						</Form>
 					</DropdownMenuItem>
