@@ -54,29 +54,9 @@ export default function ProfileRoute() {
 							/>
 						</div>
 					</div>
-				</div>
-
-				<Spacer size="sm" />
-
-				<Link to={`/users/${user.username}/pitch`}>
-					<span className="flex flex-col">
-						<Icon name="video" className="text-body-2xl"></Icon>
-						<span>Pitch video</span>
-					</span>
-				</Link>
-				<Link to={`/users/${user.username}/tree`}>
-					<span className="flex flex-col">
-						<Icon name="recommendation-tree" className="text-body-2xl"></Icon>
-						<span>Arbre de recommandations</span>
-					</span>
-				</Link>
-				<div className="flex flex-col items-center">
-					<div className="flex flex-wrap items-center justify-center gap-4">
-						<h1 className="text-center text-h2">{userDisplayName}</h1>
-					</div>
-					<div className="flex gap-2">
+					<div className="absolute -bottom-12">
 						<Button
-							variant={isRecommending ? 'accent' : 'secondary'}
+							variant={isRecommending ? 'accent' : 'outline'}
 							size="roundIcon"
 							onClick={() => {
 								setIsRecommending(!isRecommending)
@@ -84,8 +64,10 @@ export default function ProfileRoute() {
 						>
 							<Icon name="mouth"></Icon>
 						</Button>
+					</div>
+					<div className="absolute -bottom-12 right-0">
 						<Button
-							variant={isListening ? 'accent' : 'secondary'}
+							variant={isListening ? 'accent' : 'outline'}
 							size="roundIcon"
 							onClick={() => {
 								setIsListening(!isListening)
@@ -94,42 +76,83 @@ export default function ProfileRoute() {
 							<Icon name="ear"></Icon>
 						</Button>
 					</div>
-					<p className="mt-2 text-center text-muted-foreground">
-						Profil créé le {data.userJoinedDisplay}
-					</p>
-					{isLoggedInUser ? (
-						<Form action="/logout" method="POST" className="mt-3">
-							<Button type="submit" variant="link" size="pill">
-								<Icon name="exit" className="scale-125 max-md:scale-150">
-									Déconnexion
-								</Icon>
-							</Button>
-						</Form>
-					) : null}
-					<div className="mt-10 flex gap-4">
-						{
-							isLoggedInUser && (
-								<>
-									{/* <Button asChild>
+				</div>
+
+				<Spacer size="sm" />
+				<div className="flex flex-col gap-8 md:grid md:grid-cols-[200px_1fr_200px] md:self-stretch">
+					<div className="flex flex-col items-center md:order-2">
+						<div className="flex flex-wrap items-center justify-center gap-4">
+							<h1 className="text-center text-h2">{userDisplayName}</h1>
+						</div>
+						<div className="flex gap-2"></div>
+						<p className="mt-2 text-center text-muted-foreground">
+							Profil créé le {data.userJoinedDisplay}
+						</p>
+						{isLoggedInUser ? (
+							<Form action="/logout" method="POST" className="mt-3">
+								<Button type="submit" variant="link" size="pill">
+									<Icon name="exit" className="scale-125 max-md:scale-150">
+										Déconnexion
+									</Icon>
+								</Button>
+							</Form>
+						) : null}
+						<div className="mt-4 flex gap-4 md:mt-10">
+							{
+								isLoggedInUser && (
+									<>
+										{/* <Button asChild>
 									<Link to="notes" prefetch="intent">
 										My notes
 									</Link>
 								</Button> */}
-									<Button asChild>
-										<Link to="/settings/profile" prefetch="intent">
-											Modifier le profil
-										</Link>
-									</Button>
-								</>
-							)
-							// : (
-							// 	<Button asChild>
-							// 		<Link to="notes" prefetch="intent">
-							// 			{userDisplayName}'s notes
-							// 		</Link>
-							// 	</Button>
-							// )
-						}
+										<Button asChild>
+											<Link to="/settings/profile" prefetch="intent">
+												Modifier le profil
+											</Link>
+										</Button>
+									</>
+								)
+								// : (
+								// 	<Button asChild>
+								// 		<Link to="notes" prefetch="intent">
+								// 			{userDisplayName}'s notes
+								// 		</Link>
+								// 	</Button>
+								// )
+							}
+						</div>
+					</div>
+					<div className="flex flex-col gap-2 md:order-1">
+						<Link to={`/users/${user.username}/pitch`}>
+							<span className="flex flex-col align-middle">
+								<Icon name="video" className="text-body-2xl"></Icon>
+								<span className="text-center">Pitch video</span>
+							</span>
+						</Link>
+						<Link to={`/users/${user.username}/pitch`}>
+							<span className="flex flex-col align-middle">
+								<Icon name="bar-chart" className="text-body-2xl"></Icon>
+								<span className="text-center">Pitch audio</span>
+							</span>
+						</Link>
+						<Link to={`/users/${user.username}/gallery`}>
+							<span className="flex flex-col align-middle">
+								<Icon name="camera" className="text-body-2xl"></Icon>
+								<span className="text-center">Gallerie</span>
+							</span>
+						</Link>
+					</div>
+					<div className="md:order-3">
+						<Link to={`/users/${user.username}/tree`}>
+							<span className="flex flex-col align-middle">
+								<Icon
+									name="recommendation-tree"
+									className="text-body-2xl"
+								></Icon>
+								<span>Arbre de recommandations</span>
+							</span>
+						</Link>
 					</div>
 				</div>
 			</div>
