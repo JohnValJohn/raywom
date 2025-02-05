@@ -1,14 +1,15 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { Form, Link, useLoaderData, type MetaFunction } from '@remix-run/react'
+import { useState } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
+import { ButtonBase } from '#app/components/ui/buttonbase.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
-import { useState } from 'react'
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const user = await prisma.user.findFirst({
@@ -57,6 +58,12 @@ export default function ProfileRoute() {
 
 				<Spacer size="sm" />
 
+				<Link to={`/users/${user.username}/pitch`}>
+					<span className="flex flex-col">
+						<Icon name="video" className="text-body-2xl"></Icon>
+						<span>Pitch video</span>
+					</span>
+				</Link>
 				<div className="flex flex-col items-center">
 					<div className="flex flex-wrap items-center justify-center gap-4">
 						<h1 className="text-center text-h2">{userDisplayName}</h1>
@@ -77,7 +84,6 @@ export default function ProfileRoute() {
 							onClick={() => {
 								setIsListening(!isListening)
 							}}
-							// className="bg-accent text-accent-foreground"
 						>
 							<Icon name="ear"></Icon>
 						</Button>
