@@ -16,6 +16,7 @@ const buttonVariants = cva(
 					'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
 				secondary:
 					'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+				accent: 'bg-accent text-accent-foreground hover:bg-accent/80',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
@@ -26,7 +27,12 @@ const buttonVariants = cva(
 				lg: 'h-11 rounded-md px-8',
 				pill: 'px-12 py-3 leading-3',
 				icon: 'h-10 w-10',
+				roundIcon: 'h-12 w-12 rounded-full text-body-lg',
 			},
+			// border: {
+			// 	default: '',
+			// 	rounded: 'rounded-full',
+			// },
 		},
 		defaultVariants: {
 			variant: 'default',
