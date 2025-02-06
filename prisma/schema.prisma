@@ -170,9 +170,10 @@ model Connection {
 }
 
 model UserVideo {
-  id       String @id @default(cuid())
-  uploadId String
-  status   String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
+  id         String @id @default(cuid())
+  uploadId   String
+  playbackId String
+  status     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId     String @unique
 }
