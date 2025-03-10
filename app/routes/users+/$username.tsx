@@ -2,6 +2,7 @@ import { invariantResponse } from '@epic-web/invariant'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { Form, Link, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { useState } from 'react'
+import MuxPlayer from '@mux/mux-player-react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -10,8 +11,10 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
+import { requireUserId } from '#app/utils/auth.server.ts'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
+	const currentUserId = await requireUserId(request)
 	const user = await prisma.user.findFirst({
 		select: {
 			id: true,
@@ -19,6 +22,13 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			username: true,
 			createdAt: true,
 			image: { select: { id: true } },
+			video: {
+				select: {
+					id: true,
+					playbackId: true,
+					status: true,
+				},
+			},
 		},
 		where: {
 			username: params.username,
@@ -27,17 +37,22 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
-	return json({ user, userJoinedDisplay: user.createdAt.toLocaleDateString() })
+	return json({
+		user,
+		userJoinedDisplay: user.createdAt.toLocaleDateString(),
+		currentUserId,
+	})
 }
 
 export default function ProfileRoute() {
 	const data = useLoaderData<typeof loader>()
-	const user = data.user
+	const { user, currentUserId, userJoinedDisplay } = data
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
 	const [isRecommending, setIsRecommending] = useState(false)
 	const [isListening, setIsListening] = useState(false)
+	const hasVideo = user.video?.status === 'ready' && user.video?.playbackId
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
@@ -86,7 +101,7 @@ export default function ProfileRoute() {
 						</div>
 						<div className="flex gap-2"></div>
 						<p className="mt-2 text-center text-muted-foreground">
-							Profil créé le {data.userJoinedDisplay}
+							Profil créé le {userJoinedDisplay}
 						</p>
 						{isLoggedInUser ? (
 							<Form action="/logout" method="POST" className="mt-3">
@@ -98,30 +113,34 @@ export default function ProfileRoute() {
 							</Form>
 						) : null}
 						<div className="mt-4 flex gap-4 md:mt-10">
-							{
-								isLoggedInUser && (
-									<>
-										{/* <Button asChild>
-									<Link to="notes" prefetch="intent">
-										My notes
-									</Link>
-								</Button> */}
-										<Button asChild>
-											<Link to="/settings/profile" prefetch="intent">
-												Modifier le profil
-											</Link>
-										</Button>
-									</>
-								)
-								// : (
-								// 	<Button asChild>
-								// 		<Link to="notes" prefetch="intent">
-								// 			{userDisplayName}'s notes
-								// 		</Link>
-								// 	</Button>
-								// )
-							}
+							{isLoggedInUser && (
+								<>
+									<Button asChild>
+										<Link to="/settings/profile" prefetch="intent">
+											Modifier le profil
+										</Link>
+									</Button>
+								</>
+							)}
 						</div>
+
+						{hasVideo && (
+							<div className="mt-6 w-full max-w-md">
+								<h2 className="mb-2 text-center text-lg font-semibold">
+									Ma vidéo
+								</h2>
+								<MuxPlayer
+									playbackId={user.video?.playbackId || ''}
+									metadata={{
+										video_title: `${userDisplayName}'s Video`,
+										video_id: user.video?.id || '',
+										viewer_user_id: currentUserId,
+									}}
+									className="w-full rounded-md"
+									autoPlay
+								/>
+							</div>
+						)}
 					</div>
 					<div className="flex flex-col gap-2 md:order-1">
 						<Link to={`/users/${user.username}/pitch`}>
