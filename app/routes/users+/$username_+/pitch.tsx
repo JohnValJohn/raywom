@@ -18,12 +18,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			username: true,
 			image: { select: { id: true } },
 			notes: { select: { id: true, title: true } },
+			video: {
+				select: {
+					id: true,
+					uploadId: true,
+				},
+			},
 		},
 		where: { username: params.username },
 	})
-
 	invariantResponse(user, 'Owner not found', { status: 404 })
-	const id = createId()
+
+	// Otherwise, create a new upload
+	const id = user.video?.id || createId()
 
 	const upload = await muxClient.video.uploads.create({
 		new_asset_settings: {
@@ -34,8 +41,25 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		cors_origin: 'https://www.raywom.com',
 	})
 
-	//todo: save in database the id
-	return json({ url: upload.url, user })
+	await prisma.userVideo.upsert({
+		where: { userId: user.id },
+		update: {
+			uploadId: upload.id,
+			status: 'pending',
+		},
+		create: {
+			id: id,
+			uploadId: upload.id,
+			playbackId: '', // Will be populated once the upload is complete
+			status: 'pending',
+			userId: user.id,
+		},
+	})
+
+	return json({
+		url: upload.url,
+		user,
+	})
 }
 
 export default function PitchRoute() {
