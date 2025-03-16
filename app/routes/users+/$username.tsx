@@ -1,8 +1,18 @@
 import { invariantResponse } from '@epic-web/invariant'
 import MuxPlayer from '@mux/mux-player-react'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Form, Link, useLoaderData, type MetaFunction } from '@remix-run/react'
-import { useState } from 'react'
+import {
+	json,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+} from '@remix-run/node'
+import {
+	Form,
+	Link,
+	useLoaderData,
+	useFetcher,
+	type MetaFunction,
+} from '@remix-run/react'
+import { useState, useEffect } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -36,11 +46,114 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
+	// Check if the current user is recommending the profile user
+	const recommendation = await prisma.userRecommendation.findUnique({
+		where: {
+			recommenderId_recommendedId: {
+				recommenderId: currentUserId,
+				recommendedId: user.id,
+			},
+		},
+		select: { id: true },
+	})
+
+	// Check if the current user is listening to the profile user
+	const listening = await prisma.userListening.findUnique({
+		where: {
+			listenerId_listenedToId: {
+				listenerId: currentUserId,
+				listenedToId: user.id,
+			},
+		},
+		select: { id: true },
+	})
+
 	return json({
 		user,
 		userJoinedDisplay: user.createdAt.toLocaleDateString(),
 		currentUserId,
+		isRecommending: Boolean(recommendation),
+		isListening: Boolean(listening),
 	})
+}
+
+export async function action({ params, request }: ActionFunctionArgs) {
+	const currentUserId = await requireUserId(request)
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+
+	const user = await prisma.user.findFirst({
+		select: { id: true },
+		where: { username: params.username },
+	})
+
+	invariantResponse(user, 'User not found', { status: 404 })
+
+	// Don't allow users to recommend or listen to themselves
+	if (currentUserId === user.id) {
+		return json(
+			{ error: 'You cannot recommend or listen to yourself' },
+			{ status: 400 },
+		)
+	}
+
+	if (intent === 'toggle-recommendation') {
+		const existingRecommendation = await prisma.userRecommendation.findUnique({
+			where: {
+				recommenderId_recommendedId: {
+					recommenderId: currentUserId,
+					recommendedId: user.id,
+				},
+			},
+		})
+
+		if (existingRecommendation) {
+			// Remove recommendation
+			await prisma.userRecommendation.delete({
+				where: { id: existingRecommendation.id },
+			})
+			return json({ isRecommending: false })
+		} else {
+			// Add recommendation
+			await prisma.userRecommendation.create({
+				data: {
+					recommenderId: currentUserId,
+					recommendedId: user.id,
+				},
+			})
+			return json({ isRecommending: true })
+		}
+	}
+
+	if (intent === 'toggle-listening') {
+		const existingListening = await prisma.userListening.findUnique({
+			where: {
+				listenerId_listenedToId: {
+					listenerId: currentUserId,
+					listenedToId: user.id,
+				},
+			},
+		})
+
+		if (existingListening) {
+			// Remove listening
+			await prisma.userListening.delete({
+				where: { id: existingListening.id },
+			})
+			return json({ isListening: false })
+		} else {
+			// Add listening
+			await prisma.userListening.create({
+				data: {
+					listenerId: currentUserId,
+					listenedToId: user.id,
+				},
+			})
+			return json({ isListening: true })
+		}
+	}
+
+	return json({ error: 'Invalid intent' }, { status: 400 })
 }
 
 export default function ProfileRoute() {
@@ -49,9 +162,36 @@ export default function ProfileRoute() {
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
-	const [isRecommending, setIsRecommending] = useState(false)
-	const [isListening, setIsListening] = useState(false)
+	const recommendFetcher = useFetcher()
+	const listenFetcher = useFetcher()
+
+	// Initialize state from loader data
+	const [isRecommending, setIsRecommending] = useState(data.isRecommending)
+	const [isListening, setIsListening] = useState(data.isListening)
+
+	// Define types for the action responses
+	type RecommendationResponse = { isRecommending: boolean }
+	type ListeningResponse = { isListening: boolean }
+
+	// Update state when fetcher returns data
+	useEffect(() => {
+		const response = recommendFetcher.data as RecommendationResponse | undefined
+		if (response?.isRecommending !== undefined) {
+			setIsRecommending(response.isRecommending)
+		}
+	}, [recommendFetcher.data])
+
+	useEffect(() => {
+		const response = listenFetcher.data as ListeningResponse | undefined
+		if (response?.isListening !== undefined) {
+			setIsListening(response.isListening)
+		}
+	}, [listenFetcher.data])
+
 	const hasVideo = user.video?.status === 'ready' && user.video?.playbackId
+
+	// Don't show recommendation/listening buttons for own profile
+	const showInteractionButtons = !isLoggedInUser
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
@@ -68,28 +208,40 @@ export default function ProfileRoute() {
 							/>
 						</div>
 					</div>
-					<div className="absolute -bottom-12">
-						<Button
-							variant={isRecommending ? 'accent' : 'outline'}
-							size="roundIcon"
-							onClick={() => {
-								setIsRecommending(!isRecommending)
-							}}
-						>
-							<Icon name="mouth"></Icon>
-						</Button>
-					</div>
-					<div className="absolute -bottom-12 right-0">
-						<Button
-							variant={isListening ? 'accent' : 'outline'}
-							size="roundIcon"
-							onClick={() => {
-								setIsListening(!isListening)
-							}}
-						>
-							<Icon name="ear"></Icon>
-						</Button>
-					</div>
+					{showInteractionButtons && (
+						<>
+							<div className="absolute -bottom-12">
+								<recommendFetcher.Form method="post">
+									<input
+										type="hidden"
+										name="intent"
+										value="toggle-recommendation"
+									/>
+									<Button
+										variant={isRecommending ? 'accent' : 'outline'}
+										size="roundIcon"
+										type="submit"
+										disabled={recommendFetcher.state !== 'idle'}
+									>
+										<Icon name="mouth"></Icon>
+									</Button>
+								</recommendFetcher.Form>
+							</div>
+							<div className="absolute -bottom-12 right-0">
+								<listenFetcher.Form method="post">
+									<input type="hidden" name="intent" value="toggle-listening" />
+									<Button
+										variant={isListening ? 'accent' : 'outline'}
+										size="roundIcon"
+										type="submit"
+										disabled={listenFetcher.state !== 'idle'}
+									>
+										<Icon name="ear"></Icon>
+									</Button>
+								</listenFetcher.Form>
+							</div>
+						</>
+					)}
 				</div>
 
 				<Spacer size="sm" />
