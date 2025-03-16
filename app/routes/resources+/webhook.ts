@@ -4,7 +4,6 @@ import { prisma } from '#app/utils/db.server.ts'
 import { muxClient } from '#app/utils/mux.server.ts'
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-	console.log('**********************', 'received webhook')
 	if (request.method !== 'POST') {
 		return new Response('Method not allowed', { status: 405 })
 	}
@@ -25,9 +24,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	switch (event.type) {
 		case 'video.upload.asset_created':
 			// Update the database with the asset ID
-			console.log('*********************************** asset created')
-			if (event.data?.passthrough) {
-				const videoId = event.data.passthrough as string
+			if (event.data.new_asset_settings?.passthrough) {
+				const videoId = event.data.new_asset_settings.passthrough as string
 				await prisma.userVideo.update({
 					where: { id: videoId },
 					data: {
@@ -37,7 +35,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 			}
 			break
 		case 'video.asset.ready':
-			console.log('*********************************** asset ready')
 			// Update the database with the playback ID when the video is ready
 			if (
 				event.data &&
