@@ -223,6 +223,9 @@ function App() {
 						<div className="flex gap-2 align-middle">
 							<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 							<HomeButton />
+							<Link to="/users">
+								<span className="">Annuaire</span>
+							</Link>
 						</div>
 						{/* <div className="ml-auto hidden max-w-sm flex-1 sm:block">
 							{searchBar}

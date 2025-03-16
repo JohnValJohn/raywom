@@ -1,17 +1,16 @@
 import { invariantResponse } from '@epic-web/invariant'
+import MuxPlayer from '@mux/mux-player-react'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { Form, Link, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { useState } from 'react'
-import MuxPlayer from '@mux/mux-player-react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
-import { ButtonBase } from '#app/components/ui/buttonbase.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
-import { requireUserId } from '#app/utils/auth.server.ts'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const currentUserId = await requireUserId(request)
