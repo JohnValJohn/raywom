@@ -1,3 +1,5 @@
+import { getFormProps, useForm } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import MuxPlayer from '@mux/mux-player-react'
 import {
@@ -9,10 +11,10 @@ import {
 	Form,
 	Link,
 	useLoaderData,
-	useFetcher,
 	type MetaFunction,
+	useActionData,
 } from '@remix-run/react'
-import { useState, useEffect } from 'react'
+import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -92,7 +94,11 @@ export async function action({ params, request }: ActionFunctionArgs) {
 	// Don't allow users to recommend or listen to themselves
 	if (currentUserId === user.id) {
 		return json(
-			{ error: 'You cannot recommend or listen to yourself' },
+			{
+				error: 'You cannot recommend or listen to yourself',
+				isRecommending: null,
+				isListening: null,
+			},
 			{ status: 400 },
 		)
 	}
@@ -112,7 +118,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 			await prisma.userRecommendation.delete({
 				where: { id: existingRecommendation.id },
 			})
-			return json({ isRecommending: false })
+			return json({ isRecommending: false, isListening: null })
 		} else {
 			// Add recommendation
 			await prisma.userRecommendation.create({
@@ -121,7 +127,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 					recommendedId: user.id,
 				},
 			})
-			return json({ isRecommending: true })
+			return json({ isRecommending: true, isListening: null })
 		}
 	}
 
@@ -140,7 +146,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 			await prisma.userListening.delete({
 				where: { id: existingListening.id },
 			})
-			return json({ isListening: false })
+			return json({ isListening: false, isRecommending: null })
 		} else {
 			// Add listening
 			await prisma.userListening.create({
@@ -149,44 +155,52 @@ export async function action({ params, request }: ActionFunctionArgs) {
 					listenedToId: user.id,
 				},
 			})
-			return json({ isListening: true })
+			return json({ isRecommending: null, isListening: true })
 		}
 	}
 
-	return json({ error: 'Invalid intent' }, { status: 400 })
+	return json(
+		{ error: 'Invalid intent', isRecommending: null, isListening: null },
+		{ status: 400 },
+	)
 }
+
+const UserInteractionSchema = z.object({
+	intent: z.enum(['toggle-recommendation', 'toggle-listening']),
+})
 
 export default function ProfileRoute() {
 	const data = useLoaderData<typeof loader>()
+	const actionData = useActionData<typeof action>()
 	const { user, currentUserId, userJoinedDisplay } = data
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
-	const recommendFetcher = useFetcher()
-	const listenFetcher = useFetcher()
 
-	// Initialize state from loader data
-	const [isRecommending, setIsRecommending] = useState(data.isRecommending)
-	const [isListening, setIsListening] = useState(data.isListening)
+	// Use the latest state from the action response or fall back to the loader data
+	const isRecommending =
+		actionData?.isRecommending !== undefined
+			? actionData.isRecommending
+			: data.isRecommending
 
-	// Define types for the action responses
-	type RecommendationResponse = { isRecommending: boolean }
-	type ListeningResponse = { isListening: boolean }
+	const isListening =
+		actionData?.isListening !== undefined
+			? actionData.isListening
+			: data.isListening
 
-	// Update state when fetcher returns data
-	useEffect(() => {
-		const response = recommendFetcher.data as RecommendationResponse | undefined
-		if (response?.isRecommending !== undefined) {
-			setIsRecommending(response.isRecommending)
-		}
-	}, [recommendFetcher.data])
+	const [recommendForm] = useForm({
+		id: 'recommend-form',
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: UserInteractionSchema })
+		},
+	})
 
-	useEffect(() => {
-		const response = listenFetcher.data as ListeningResponse | undefined
-		if (response?.isListening !== undefined) {
-			setIsListening(response.isListening)
-		}
-	}, [listenFetcher.data])
+	const [listenForm] = useForm({
+		id: 'listen-form',
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: UserInteractionSchema })
+		},
+	})
 
 	const hasVideo = user.video?.status === 'ready' && user.video?.playbackId
 
@@ -211,7 +225,7 @@ export default function ProfileRoute() {
 					{showInteractionButtons && (
 						<>
 							<div className="absolute -bottom-12">
-								<recommendFetcher.Form method="post">
+								<Form method="post" {...getFormProps(recommendForm)}>
 									<input
 										type="hidden"
 										name="intent"
@@ -221,24 +235,22 @@ export default function ProfileRoute() {
 										variant={isRecommending ? 'accent' : 'outline'}
 										size="roundIcon"
 										type="submit"
-										disabled={recommendFetcher.state !== 'idle'}
 									>
 										<Icon name="mouth"></Icon>
 									</Button>
-								</recommendFetcher.Form>
+								</Form>
 							</div>
 							<div className="absolute -bottom-12 right-0">
-								<listenFetcher.Form method="post">
+								<Form method="post" {...getFormProps(listenForm)}>
 									<input type="hidden" name="intent" value="toggle-listening" />
 									<Button
 										variant={isListening ? 'accent' : 'outline'}
 										size="roundIcon"
 										type="submit"
-										disabled={listenFetcher.state !== 'idle'}
 									>
 										<Icon name="ear"></Icon>
 									</Button>
-								</listenFetcher.Form>
+								</Form>
 							</div>
 						</>
 					)}
