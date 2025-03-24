@@ -7,7 +7,6 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { muxClient } from '#app/utils/mux.server.ts'
-// import { useOptionalUser } from '#app/utils/user.ts'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	await requireUserId(request)
@@ -29,7 +28,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 	invariantResponse(user, 'Owner not found', { status: 404 })
 
-	// Otherwise, create a new upload
 	const id = user.video?.id || createId()
 
 	const upload = await muxClient.video.uploads.create({
@@ -62,13 +60,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 }
 
+const MAX_FILE_SIZE = 1024 * 200 // 200MB
+
 export default function PitchRoute() {
 	const { url } = useLoaderData<typeof loader>()
-	// const user = useOptionalUser()
 	return (
 		<main className="container flex h-full min-h-[400px] px-0 pb-12 md:px-8">
 			<div>
-				<MuxUploader endpoint={url} />
+				<MuxUploader endpoint={url} maxFileSize={MAX_FILE_SIZE} />
 			</div>
 		</main>
 	)
