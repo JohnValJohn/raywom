@@ -48,7 +48,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
-	// Check if the current user is recommending the profile user
 	const recommendation = await prisma.userRecommendation.findUnique({
 		where: {
 			recommenderId_recommendedId: {
@@ -59,7 +58,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		select: { id: true },
 	})
 
-	// Check if the current user is listening to the profile user
 	const listening = await prisma.userListening.findUnique({
 		where: {
 			listenerId_listenedToId: {
@@ -103,59 +101,54 @@ export async function action({ params, request }: ActionFunctionArgs) {
 		)
 	}
 
-	if (intent === 'toggle-recommendation') {
-		const existingRecommendation = await prisma.userRecommendation.findUnique({
-			where: {
-				recommenderId_recommendedId: {
-					recommenderId: currentUserId,
-					recommendedId: user.id,
-				},
+	const recommendation = await prisma.userRecommendation.findUnique({
+		where: {
+			recommenderId_recommendedId: {
+				recommenderId: currentUserId,
+				recommendedId: user.id,
 			},
-		})
+		},
+	})
+	const listening = await prisma.userListening.findUnique({
+		where: {
+			listenerId_listenedToId: {
+				listenerId: currentUserId,
+				listenedToId: user.id,
+			},
+		},
+	})
 
-		if (existingRecommendation) {
-			// Remove recommendation
+	if (intent === 'toggle-recommendation') {
+		if (recommendation) {
 			await prisma.userRecommendation.delete({
-				where: { id: existingRecommendation.id },
+				where: { id: recommendation.id },
 			})
-			return json({ isRecommending: false, isListening: null })
+			return json({ isRecommending: false, isListening: !!listening })
 		} else {
-			// Add recommendation
 			await prisma.userRecommendation.create({
 				data: {
 					recommenderId: currentUserId,
 					recommendedId: user.id,
 				},
 			})
-			return json({ isRecommending: true, isListening: null })
+			return json({ isRecommending: true, isListening: !!listening })
 		}
 	}
 
 	if (intent === 'toggle-listening') {
-		const existingListening = await prisma.userListening.findUnique({
-			where: {
-				listenerId_listenedToId: {
-					listenerId: currentUserId,
-					listenedToId: user.id,
-				},
-			},
-		})
-
-		if (existingListening) {
-			// Remove listening
+		if (listening) {
 			await prisma.userListening.delete({
-				where: { id: existingListening.id },
+				where: { id: listening.id },
 			})
-			return json({ isListening: false, isRecommending: null })
+			return json({ isListening: false, isRecommending: !!recommendation })
 		} else {
-			// Add listening
 			await prisma.userListening.create({
 				data: {
 					listenerId: currentUserId,
 					listenedToId: user.id,
 				},
 			})
-			return json({ isRecommending: null, isListening: true })
+			return json({ isListening: true, isRecommending: !!recommendation })
 		}
 	}
 
