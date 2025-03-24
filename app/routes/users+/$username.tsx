@@ -1,17 +1,28 @@
+import { getFormProps, useForm } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Form, Link, useLoaderData, type MetaFunction } from '@remix-run/react'
-import { useState } from 'react'
 import MuxPlayer from '@mux/mux-player-react'
+import {
+	json,
+	type LoaderFunctionArgs,
+	type ActionFunctionArgs,
+} from '@remix-run/node'
+import {
+	Form,
+	Link,
+	useLoaderData,
+	type MetaFunction,
+	useActionData,
+} from '@remix-run/react'
+import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
-import { ButtonBase } from '#app/components/ui/buttonbase.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
-import { requireUserId } from '#app/utils/auth.server.ts'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const currentUserId = await requireUserId(request)
@@ -37,22 +48,157 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
+	const recommendation = await prisma.userRecommendation.findUnique({
+		where: {
+			recommenderId_recommendedId: {
+				recommenderId: currentUserId,
+				recommendedId: user.id,
+			},
+		},
+		select: { id: true },
+	})
+
+	const listening = await prisma.userListening.findUnique({
+		where: {
+			listenerId_listenedToId: {
+				listenerId: currentUserId,
+				listenedToId: user.id,
+			},
+		},
+		select: { id: true },
+	})
+
 	return json({
 		user,
 		userJoinedDisplay: user.createdAt.toLocaleDateString(),
 		currentUserId,
+		isRecommending: Boolean(recommendation),
+		isListening: Boolean(listening),
 	})
 }
 
+export async function action({ params, request }: ActionFunctionArgs) {
+	const currentUserId = await requireUserId(request)
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+
+	const user = await prisma.user.findFirst({
+		select: { id: true },
+		where: { username: params.username },
+	})
+
+	invariantResponse(user, 'User not found', { status: 404 })
+
+	// Don't allow users to recommend or listen to themselves
+	if (currentUserId === user.id) {
+		return json(
+			{
+				error: 'You cannot recommend or listen to yourself',
+				isRecommending: null,
+				isListening: null,
+			},
+			{ status: 400 },
+		)
+	}
+
+	const recommendation = await prisma.userRecommendation.findUnique({
+		where: {
+			recommenderId_recommendedId: {
+				recommenderId: currentUserId,
+				recommendedId: user.id,
+			},
+		},
+	})
+	const listening = await prisma.userListening.findUnique({
+		where: {
+			listenerId_listenedToId: {
+				listenerId: currentUserId,
+				listenedToId: user.id,
+			},
+		},
+	})
+
+	if (intent === 'toggle-recommendation') {
+		if (recommendation) {
+			await prisma.userRecommendation.delete({
+				where: { id: recommendation.id },
+			})
+			return json({ isRecommending: false, isListening: !!listening })
+		} else {
+			await prisma.userRecommendation.create({
+				data: {
+					recommenderId: currentUserId,
+					recommendedId: user.id,
+				},
+			})
+			return json({ isRecommending: true, isListening: !!listening })
+		}
+	}
+
+	if (intent === 'toggle-listening') {
+		if (listening) {
+			await prisma.userListening.delete({
+				where: { id: listening.id },
+			})
+			return json({ isListening: false, isRecommending: !!recommendation })
+		} else {
+			await prisma.userListening.create({
+				data: {
+					listenerId: currentUserId,
+					listenedToId: user.id,
+				},
+			})
+			return json({ isListening: true, isRecommending: !!recommendation })
+		}
+	}
+
+	return json(
+		{ error: 'Invalid intent', isRecommending: null, isListening: null },
+		{ status: 400 },
+	)
+}
+
+const UserInteractionSchema = z.object({
+	intent: z.enum(['toggle-recommendation', 'toggle-listening']),
+})
+
 export default function ProfileRoute() {
 	const data = useLoaderData<typeof loader>()
+	const actionData = useActionData<typeof action>()
 	const { user, currentUserId, userJoinedDisplay } = data
 	const userDisplayName = user.name ?? user.username
 	const loggedInUser = useOptionalUser()
 	const isLoggedInUser = data.user.id === loggedInUser?.id
-	const [isRecommending, setIsRecommending] = useState(false)
-	const [isListening, setIsListening] = useState(false)
+
+	// Use the latest state from the action response or fall back to the loader data
+	const isRecommending =
+		actionData?.isRecommending !== undefined
+			? actionData.isRecommending
+			: data.isRecommending
+
+	const isListening =
+		actionData?.isListening !== undefined
+			? actionData.isListening
+			: data.isListening
+
+	const [recommendForm] = useForm({
+		id: 'recommend-form',
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: UserInteractionSchema })
+		},
+	})
+
+	const [listenForm] = useForm({
+		id: 'listen-form',
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: UserInteractionSchema })
+		},
+	})
+
 	const hasVideo = user.video?.status === 'ready' && user.video?.playbackId
+
+	// Don't show recommendation/listening buttons for own profile
+	const showInteractionButtons = !isLoggedInUser
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center">
@@ -69,28 +215,38 @@ export default function ProfileRoute() {
 							/>
 						</div>
 					</div>
-					<div className="absolute -bottom-12">
-						<Button
-							variant={isRecommending ? 'accent' : 'outline'}
-							size="roundIcon"
-							onClick={() => {
-								setIsRecommending(!isRecommending)
-							}}
-						>
-							<Icon name="mouth"></Icon>
-						</Button>
-					</div>
-					<div className="absolute -bottom-12 right-0">
-						<Button
-							variant={isListening ? 'accent' : 'outline'}
-							size="roundIcon"
-							onClick={() => {
-								setIsListening(!isListening)
-							}}
-						>
-							<Icon name="ear"></Icon>
-						</Button>
-					</div>
+					{showInteractionButtons && (
+						<>
+							<div className="absolute -bottom-12">
+								<Form method="post" {...getFormProps(recommendForm)}>
+									<input
+										type="hidden"
+										name="intent"
+										value="toggle-recommendation"
+									/>
+									<Button
+										variant={isRecommending ? 'accent' : 'outline'}
+										size="roundIcon"
+										type="submit"
+									>
+										<Icon name="mouth"></Icon>
+									</Button>
+								</Form>
+							</div>
+							<div className="absolute -bottom-12 right-0">
+								<Form method="post" {...getFormProps(listenForm)}>
+									<input type="hidden" name="intent" value="toggle-listening" />
+									<Button
+										variant={isListening ? 'accent' : 'outline'}
+										size="roundIcon"
+										type="submit"
+									>
+										<Icon name="ear"></Icon>
+									</Button>
+								</Form>
+							</div>
+						</>
+					)}
 				</div>
 
 				<Spacer size="sm" />

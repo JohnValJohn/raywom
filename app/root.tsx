@@ -25,7 +25,6 @@ import faviconAssetUrl from './assets/favicons/favicon.svg'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { HomeButton } from './components/HomeButton.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
-import { SearchBar } from './components/search-bar.tsx'
 import { useToast } from './components/toaster.tsx'
 import { Button } from './components/ui/button.tsx'
 import {
@@ -223,6 +222,9 @@ function App() {
 						<div className="flex gap-2 align-middle">
 							<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 							<HomeButton />
+							<Link to="/users">
+								<span className="">Annuaire</span>
+							</Link>
 						</div>
 						{/* <div className="ml-auto hidden max-w-sm flex-1 sm:block">
 							{searchBar}

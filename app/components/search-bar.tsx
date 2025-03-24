@@ -36,7 +36,7 @@ export function SearchBar({
 		>
 			<div className="flex-1">
 				<Label htmlFor={id} className="sr-only">
-					Search
+					Recherche
 				</Label>
 				<Input
 					type="search"
@@ -55,7 +55,7 @@ export function SearchBar({
 					className="flex w-full items-center justify-center"
 				>
 					<Icon name="magnifying-glass" size="md" />
-					<span className="sr-only">Search</span>
+					<span className="sr-only">Recherche</span>
 				</StatusButton>
 			</div>
 		</Form>

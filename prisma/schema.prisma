@@ -26,6 +26,14 @@ model User {
   sessions    Session[]
   connections Connection[]
   video       UserVideo?
+  
+  // Recommendation relationships
+  recommendations UserRecommendation[] @relation("UserRecommendations")
+  recommendedBy   UserRecommendation[] @relation("RecommendedByUsers")
+  
+  // Listening relationships
+  listening       UserListening[] @relation("UserListening")
+  listenedToBy    UserListening[] @relation("ListenedToByUsers")
 }
 
 model Note {
@@ -176,4 +184,38 @@ model UserVideo {
   status     String
   user       User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId     String @unique
+}
+
+model UserRecommendation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // The user who is recommending
+  recommender   User   @relation("UserRecommendations", fields: [recommenderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recommenderId String
+  
+  // The user who is being recommended
+  recommended   User   @relation("RecommendedByUsers", fields: [recommendedId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recommendedId String
+  
+  @@unique([recommenderId, recommendedId])
+  @@index([recommenderId])
+  @@index([recommendedId])
+}
+
+model UserListening {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // The user who is listening
+  listener   User   @relation("UserListening", fields: [listenerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  listenerId String
+  
+  // The user who is being listened to
+  listenedTo   User   @relation("ListenedToByUsers", fields: [listenedToId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  listenedToId String
+  
+  @@unique([listenerId, listenedToId])
+  @@index([listenerId])
+  @@index([listenedToId])
 }
