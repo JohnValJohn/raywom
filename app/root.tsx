@@ -265,7 +265,7 @@ function UserDropdown() {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary">
+				<Button asChild variant="accent">
 					<Link
 						to={`/users/${user.username}`}
 						// this is for progressive enhancement
