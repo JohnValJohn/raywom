@@ -35,6 +35,7 @@
 
 		--accent: 210 57% 78%; /* #A7C7E7 */
 		--accent-foreground: 222.2 84% 4.9%;
+		--accent-hover: 210 57% 85%;
 
 		--destructive: 0 70% 50%;
 		--destructive-foreground: 210 40% 98%;
@@ -72,6 +73,7 @@
 
 		--accent: 217.2 32.6% 40%;
 		--accent-foreground: 210 40% 98%;
+		--accent-hover: 210 57% 85%;
 
 		--destructive: 0 60% 40%;
 		--destructive-foreground: 0 85.7% 97.3%;
