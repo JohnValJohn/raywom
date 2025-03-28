@@ -36,11 +36,6 @@ import {
 } from './components/ui/dropdown-menu.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
-import {
-	ThemeSwitch,
-	useOptionalTheme,
-	useTheme,
-} from './routes/resources+/theme-switch.tsx'
 import tailwindStyleSheetUrl from './styles/tailwind.css?url'
 import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
@@ -195,9 +190,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	// if there was an error running the loader, data could be missing
 	const data = useLoaderData<typeof loader | null>()
 	const nonce = useNonce()
-	const theme = useOptionalTheme()
 	return (
-		<Document nonce={nonce} theme={theme} env={data?.ENV}>
+		<Document nonce={nonce} env={data?.ENV}>
 			{children}
 		</Document>
 	)
@@ -206,12 +200,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 function App() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
-	const theme = useTheme()
 	const matches = useMatches()
 	const isOnLoginPage = !!matches.find((m) => m.id === 'routes/_auth+/login')
 	const isOnSignupPage = !!matches.find((m) => m.id === 'routes/_auth+/signup')
-	// const isOnSearchPage = matches.find((m) => m.id === 'routes/users+/index')
-	// const searchBar = isOnSearchPage ? null : <SearchBar status="idle" />
 	useToast(data.toast)
 
 	return (
@@ -220,15 +211,11 @@ function App() {
 				<header className="container py-6">
 					<nav className="flex items-center justify-between gap-4 md:gap-8">
 						<div className="flex gap-2 align-middle">
-							<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 							<HomeButton />
 							<Link to="/users">
 								<span className="">Annuaire</span>
 							</Link>
 						</div>
-						{/* <div className="ml-auto hidden max-w-sm flex-1 sm:block">
-							{searchBar}
-						</div> */}
 						<div className="flex items-center gap-10">
 							{user ? (
 								<UserDropdown />
@@ -247,37 +234,18 @@ function App() {
 								</>
 							)}
 						</div>
-						{/* <div className="block w-full sm:hidden">{searchBar}</div> */}
 					</nav>
 				</header>
 
 				<div className="flex flex-1 justify-center">
 					<Outlet />
 				</div>
-
-				{/* <div className="container flex justify-between pb-5">
-					<Logo />
-					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
-				</div> */}
 			</div>
-			<EpicToaster closeButton position="top-center" theme={theme} />
+			<EpicToaster closeButton position="top-center" theme="light" />
 			<EpicProgress />
 		</>
 	)
 }
-
-// function Logo() {
-// 	return (
-// 		<Link to="/" className="group grid leading-snug">
-// 			<span className="font-light transition group-hover:-translate-x-1">
-// 				epic
-// 			</span>
-// 			<span className="font-bold transition group-hover:translate-x-1">
-// 				notes
-// 			</span>
-// 		</Link>
-// 	)
-// }
 
 function AppWithProviders() {
 	const data = useLoaderData<typeof loader>()
@@ -324,13 +292,6 @@ function UserDropdown() {
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
-					{/* <DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}/notes`}>
-							<Icon className="text-body-md" name="pencil-2">
-								Notes
-							</Icon>
-						</Link>
-					</DropdownMenuItem> */}
 					<DropdownMenuItem
 						asChild
 						// this prevents the menu from closing before the form submission is completed
