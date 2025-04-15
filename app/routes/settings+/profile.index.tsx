@@ -151,7 +151,9 @@ export default function EditUserProfile() {
 				<div>
 					<Link to={data.hasPassword ? 'password' : 'password/create'}>
 						<Icon name="dots-horizontal">
-							{data.hasPassword ? 'Change Password' : 'Create a Password'}
+							{data.hasPassword
+								? 'Changer le mot de passe'
+								: 'Créer un mot de passe'}
 						</Icon>
 					</Link>
 				</div>
@@ -254,7 +256,7 @@ function UpdateProfile() {
 						fetcher.state !== 'idle' ? 'pending' : (form.status ?? 'idle')
 					}
 				>
-					Save changes
+					Enregistrer
 				</StatusButton>
 			</div>
 		</fetcher.Form>
@@ -268,7 +270,7 @@ async function signOutOfSessionsAction({ request, userId }: ProfileActionArgs) {
 	const sessionId = authSession.get(sessionKey)
 	invariantResponse(
 		sessionId,
-		'You must be authenticated to sign out of other sessions',
+		"Vous devez être connecté pour vous déconnecter d'autres sessions",
 	)
 	await prisma.session.deleteMany({
 		where: {
@@ -304,13 +306,13 @@ function SignOutOfSessions() {
 					>
 						<Icon name="avatar">
 							{dc.doubleCheck
-								? `Are you sure?`
-								: `Sign out of ${otherSessionsCount} other sessions`}
+								? `Êtes-vous sûr(e)?`
+								: `Se déconnecter de ${otherSessionsCount} autres sessions`}
 						</Icon>
 					</StatusButton>
 				</fetcher.Form>
 			) : (
-				<Icon name="avatar">This is your only session</Icon>
+				<Icon name="avatar">Ceci est votre seule session</Icon>
 			)}
 		</div>
 	)
@@ -320,8 +322,8 @@ async function deleteDataAction({ userId }: ProfileActionArgs) {
 	await prisma.user.delete({ where: { id: userId } })
 	return redirectWithToast('/', {
 		type: 'success',
-		title: 'Data Deleted',
-		description: 'All of your data has been deleted',
+		title: 'Données supprimées',
+		description: 'Toutes vos données ont été supprimées',
 	})
 }
 
@@ -342,7 +344,9 @@ function DeleteData() {
 					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
 				>
 					<Icon name="trash">
-						{dc.doubleCheck ? `Are you sure?` : `Delete all your data`}
+						{dc.doubleCheck
+							? `Êtes-vous sûr(e)?`
+							: `Supprimer toutes vos données`}
 					</Icon>
 				</StatusButton>
 			</fetcher.Form>
