@@ -1,15 +1,6 @@
-import { faker } from '@faker-js/faker'
 import { promiseHash } from 'remix-utils/promise'
 import { prisma } from '#app/utils/db.server.ts'
-import { MOCK_CODE_GITHUB } from '#app/utils/providers/constants'
-import {
-	createPassword,
-	createUser,
-	getNoteImages,
-	getUserImages,
-	img,
-} from '#tests/db-utils.ts'
-import { insertGitHubUser } from '#tests/mocks/github.ts'
+import { createPassword, img } from '#tests/db-utils.ts'
 
 async function seed() {
 	console.log('🌱 Seeding...')
@@ -17,8 +8,6 @@ async function seed() {
 
 	const totalUsers = 5
 	console.time(`👤 Created ${totalUsers} users...`)
-	const noteImages = await getNoteImages()
-	const userImages = await getUserImages()
 
 	await prisma.user
 		.create({
