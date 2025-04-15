@@ -201,7 +201,7 @@ export default function OnboardingProviderRoute() {
 				<div className="flex flex-col gap-3 text-center">
 					<h1 className="text-h1">Welcome aboard {data.email}!</h1>
 					<p className="text-body-md text-muted-foreground">
-						Please enter your details.
+						Veuillez entrer vos informations.
 					</p>
 				</div>
 				<Spacer size="xs" />
@@ -218,7 +218,7 @@ export default function OnboardingProviderRoute() {
 								className="h-24 w-24 rounded-full"
 							/>
 							<p className="text-body-sm text-muted-foreground">
-								You can change your photo later
+								Vous pouvez changer votre photo plus tard
 							</p>
 							<input {...getInputProps(fields.imageUrl, { type: 'hidden' })} />
 						</div>
@@ -245,7 +245,7 @@ export default function OnboardingProviderRoute() {
 						labelProps={{
 							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
 							children:
-								'Do you agree to our Terms of Service and Privacy Policy?',
+								"Voulez-vous accepter nos conditions d'utilisation et notre politique de confidentialité?",
 						}}
 						buttonProps={getInputProps(
 							fields.agreeToTermsOfServiceAndPrivacyPolicy,
@@ -275,7 +275,7 @@ export default function OnboardingProviderRoute() {
 							type="submit"
 							disabled={isPending}
 						>
-							Create an account
+							Créer un compte
 						</StatusButton>
 					</div>
 				</Form>

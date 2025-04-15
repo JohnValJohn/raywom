@@ -17,7 +17,7 @@ import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendEmail } from '#app/utils/email.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
-import { EmailSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { EmailSchema } from '#app/utils/user-validation.ts'
 import { prepareVerification } from './verify.server.ts'
 
 export const handle: SEOHandle = {
@@ -25,7 +25,7 @@ export const handle: SEOHandle = {
 }
 
 const ForgotPasswordSchema = z.object({
-	usernameOrEmail: z.union([EmailSchema, UsernameSchema]),
+	email: EmailSchema,
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -35,10 +35,7 @@ export async function action({ request }: ActionFunctionArgs) {
 		schema: ForgotPasswordSchema.superRefine(async (data, ctx) => {
 			const user = await prisma.user.findFirst({
 				where: {
-					OR: [
-						{ email: data.usernameOrEmail },
-						{ username: data.usernameOrEmail },
-					],
+					email: data.email,
 				},
 				select: { id: true },
 			})
@@ -59,18 +56,18 @@ export async function action({ request }: ActionFunctionArgs) {
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
-	const { usernameOrEmail } = submission.value
+	const { email } = submission.value
 
 	const user = await prisma.user.findFirstOrThrow({
-		where: { OR: [{ email: usernameOrEmail }, { username: usernameOrEmail }] },
-		select: { email: true, username: true },
+		where: { email },
+		select: { email: true },
 	})
 
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,
 		request,
 		type: 'reset-password',
-		target: usernameOrEmail,
+		target: email,
 	})
 
 	const response = await sendEmail({
@@ -151,14 +148,15 @@ export default function ForgotPasswordRoute() {
 						<div>
 							<Field
 								labelProps={{
-									htmlFor: fields.usernameOrEmail.id,
-									children: 'Username or Email',
+									htmlFor: fields.email.id,
+									children: 'Email',
 								}}
 								inputProps={{
 									autoFocus: true,
-									...getInputProps(fields.usernameOrEmail, { type: 'text' }),
+									...getInputProps(fields.email, { type: 'email' }),
+									autoComplete: 'email',
 								}}
-								errors={fields.usernameOrEmail.errors}
+								errors={fields.email.errors}
 							/>
 						</div>
 						<ErrorList errors={form.errors} id={form.errorId} />
