@@ -17,10 +17,14 @@ export const PasswordSchema = z
 	.string({ required_error: 'Password is required' })
 	.min(6, { message: 'Password is too short' })
 	.max(100, { message: 'Password is too long' })
-export const NameSchema = z
-	.string({ required_error: 'Name is required' })
-	.min(3, { message: 'Name is too short' })
-	.max(40, { message: 'Name is too long' })
+export const FirstNameSchema = z
+	.string({ required_error: 'Le prénom est obligatoire' })
+	.min(1, { message: 'Le prénom est trop court' })
+	.max(80, { message: 'Le prénom est trop long' })
+export const LastNameSchema = z
+	.string({ required_error: 'Le nom est obligatoire' })
+	.min(1, { message: 'Le nom est trop court' })
+	.max(80, { message: 'Le nom est trop long' })
 export const EmailSchema = z
 	.string({ required_error: 'Email is required' })
 	.email({ message: 'Email is invalid' })

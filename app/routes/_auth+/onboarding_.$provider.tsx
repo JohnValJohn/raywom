@@ -36,7 +36,11 @@ import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
-import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import {
+	FirstNameSchema,
+	LastNameSchema,
+	UsernameSchema,
+} from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
 import { onboardingEmailSessionKey } from './onboarding'
 
@@ -46,7 +50,8 @@ export const prefilledProfileKey = 'prefilledProfile'
 const SignupFormSchema = z.object({
 	imageUrl: z.string().optional(),
 	username: UsernameSchema,
-	name: NameSchema,
+	firstName: FirstNameSchema,
+	lastName: LastNameSchema,
 	agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
 		required_error: 'You must agree to the terms of service and privacy policy',
 	}),
@@ -233,12 +238,20 @@ export default function OnboardingProviderRoute() {
 						errors={fields.username.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						labelProps={{ htmlFor: fields.firstName.id, children: 'Prénom' }}
 						inputProps={{
-							...getInputProps(fields.name, { type: 'text' }),
-							autoComplete: 'name',
+							...getInputProps(fields.firstName, { type: 'text' }),
+							autoComplete: 'firstName',
 						}}
-						errors={fields.name.errors}
+						errors={fields.firstName.errors}
+					/>
+					<Field
+						labelProps={{ htmlFor: fields.lastName.id, children: 'Nom' }}
+						inputProps={{
+							...getInputProps(fields.lastName, { type: 'text' }),
+							autoComplete: 'lastName',
+						}}
+						errors={fields.lastName.errors}
 					/>
 
 					<CheckboxField

@@ -113,11 +113,13 @@ export async function signup({
 	email,
 	username,
 	password,
-	name,
+	firstName,
+	lastName,
 }: {
 	email: User['email']
 	username: User['username']
-	name: User['name']
+	firstName: User['firstName']
+	lastName: User['lastName']
 	password: string
 }) {
 	const hashedPassword = await getPasswordHash(password)
@@ -129,7 +131,8 @@ export async function signup({
 				create: {
 					email: email.toLowerCase(),
 					username: username.toLowerCase(),
-					name,
+					firstName,
+					lastName,
 					roles: { connect: { name: 'user' } },
 					password: {
 						create: {
@@ -148,14 +151,16 @@ export async function signup({
 export async function signupWithConnection({
 	email,
 	username,
-	name,
+	firstName,
+	lastName,
 	providerId,
 	providerName,
 	imageUrl,
 }: {
 	email: User['email']
 	username: User['username']
-	name: User['name']
+	firstName: User['firstName']
+	lastName: User['lastName']
 	providerId: Connection['providerId']
 	providerName: Connection['providerName']
 	imageUrl?: string
@@ -167,7 +172,8 @@ export async function signupWithConnection({
 				create: {
 					email: email.toLowerCase(),
 					username: username.toLowerCase(),
-					name,
+					firstName,
+					lastName,
 					roles: { connect: { name: 'user' } },
 					connections: { create: { providerId, providerName } },
 					image: imageUrl

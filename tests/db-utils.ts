@@ -26,6 +26,8 @@ export function createUser() {
 	return {
 		username,
 		name: `${firstName} ${lastName}`,
+		firstName,
+		lastName,
 		email: `${username}@example.com`,
 	}
 }
