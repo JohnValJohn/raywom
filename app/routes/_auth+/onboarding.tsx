@@ -26,7 +26,8 @@ import { useIsPending } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import {
-	NameSchema,
+	FirstNameSchema,
+	LastNameSchema,
 	PasswordAndConfirmPasswordSchema,
 	UsernameSchema,
 } from '#app/utils/user-validation.ts'
@@ -37,7 +38,8 @@ export const onboardingEmailSessionKey = 'onboardingEmail'
 const SignupFormSchema = z
 	.object({
 		username: UsernameSchema,
-		name: NameSchema,
+		firstName: FirstNameSchema,
+		lastName: LastNameSchema,
 		agreeToTermsOfServiceAndPrivacyPolicy: z.boolean({
 			required_error:
 				'You must agree to the terms of service and privacy policy',
@@ -173,12 +175,20 @@ export default function OnboardingRoute() {
 						errors={fields.username.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						labelProps={{ htmlFor: fields.firstName.id, children: 'Prénom' }}
 						inputProps={{
-							...getInputProps(fields.name, { type: 'text' }),
-							autoComplete: 'name',
+							...getInputProps(fields.firstName, { type: 'text' }),
+							autoComplete: 'given-name',
 						}}
-						errors={fields.name.errors}
+						errors={fields.firstName.errors}
+					/>
+					<Field
+						labelProps={{ htmlFor: fields.lastName.id, children: 'Nom' }}
+						inputProps={{
+							...getInputProps(fields.lastName, { type: 'text' }),
+							autoComplete: 'family-name',
+						}}
+						errors={fields.lastName.errors}
 					/>
 					<Field
 						labelProps={{ htmlFor: fields.password.id, children: 'Password' }}

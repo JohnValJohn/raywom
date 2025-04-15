@@ -18,7 +18,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc, useDoubleCheck } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
-import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { FirstNameSchema, LastNameSchema } from '#app/utils/user-validation.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 
 export const handle: SEOHandle = {
@@ -26,8 +26,8 @@ export const handle: SEOHandle = {
 }
 
 const ProfileFormSchema = z.object({
-	name: NameSchema.optional(),
-	username: UsernameSchema,
+	firstName: FirstNameSchema,
+	lastName: LastNameSchema,
 })
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -36,8 +36,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		where: { id: userId },
 		select: {
 			id: true,
-			name: true,
-			username: true,
+			firstName: true,
+			lastName: true,
 			email: true,
 			image: {
 				select: { id: true },
@@ -109,7 +109,7 @@ export default function EditUserProfile() {
 				<div className="relative h-52 w-52">
 					<img
 						src={getUserImgSrc(data.user.image?.id)}
-						alt={data.user.username}
+						alt={`${data.user.firstName} ${data.user.lastName}`}
 						className="h-full w-full rounded-full object-cover"
 					/>
 					<Button
@@ -120,8 +120,8 @@ export default function EditUserProfile() {
 						<Link
 							preventScrollReset
 							to="photo"
-							title="Change profile photo"
-							aria-label="Change profile photo"
+							title="Changer la photo de profil"
+							aria-label="Changer la photo de profil"
 						>
 							<Icon name="camera" className="h-4 w-4" />
 						</Link>
@@ -135,16 +135,16 @@ export default function EditUserProfile() {
 				<div>
 					<Link to="change-email">
 						<Icon name="envelope-closed">
-							Change email from {data.user.email}
+							Changer l'email de {data.user.email}
 						</Icon>
 					</Link>
 				</div>
 				<div>
 					<Link to="two-factor">
 						{data.isTwoFactorEnabled ? (
-							<Icon name="lock-closed">2FA is enabled</Icon>
+							<Icon name="lock-closed">2FA est activé</Icon>
 						) : (
-							<Icon name="lock-open-1">Enable 2FA</Icon>
+							<Icon name="lock-open-1">Activer 2FA</Icon>
 						)}
 					</Link>
 				</div>
@@ -157,7 +157,7 @@ export default function EditUserProfile() {
 				</div>
 				<div>
 					<Link to="connections">
-						<Icon name="link-2">Manage connections</Icon>
+						<Icon name="link-2">Gérer les connexions</Icon>
 					</Link>
 				</div>
 				{/* <div>
@@ -179,19 +179,7 @@ export default function EditUserProfile() {
 async function profileUpdateAction({ userId, formData }: ProfileActionArgs) {
 	const submission = await parseWithZod(formData, {
 		async: true,
-		schema: ProfileFormSchema.superRefine(async ({ username }, ctx) => {
-			const existingUsername = await prisma.user.findUnique({
-				where: { username },
-				select: { id: true },
-			})
-			if (existingUsername && existingUsername.id !== userId) {
-				ctx.addIssue({
-					path: ['username'],
-					code: z.ZodIssueCode.custom,
-					message: 'A user already exists with this username',
-				})
-			}
-		}),
+		schema: ProfileFormSchema,
 	})
 	if (submission.status !== 'success') {
 		return json(
@@ -203,11 +191,11 @@ async function profileUpdateAction({ userId, formData }: ProfileActionArgs) {
 	const data = submission.value
 
 	await prisma.user.update({
-		select: { username: true },
+		select: { firstName: true, lastName: true },
 		where: { id: userId },
 		data: {
-			name: data.name,
-			username: data.username,
+			firstName: data.firstName,
+			lastName: data.lastName,
 		},
 	})
 
@@ -229,8 +217,8 @@ function UpdateProfile() {
 			return parseWithZod(formData, { schema: ProfileFormSchema })
 		},
 		defaultValue: {
-			username: data.user.username,
-			name: data.user.name,
+			firstName: data.user.firstName,
+			lastName: data.user.lastName,
 		},
 	})
 
@@ -240,17 +228,17 @@ function UpdateProfile() {
 				<Field
 					className="col-span-3"
 					labelProps={{
-						htmlFor: fields.username.id,
-						children: 'Username',
+						htmlFor: fields.firstName.id,
+						children: 'Prénom',
 					}}
-					inputProps={getInputProps(fields.username, { type: 'text' })}
-					errors={fields.username.errors}
+					inputProps={getInputProps(fields.firstName, { type: 'text' })}
+					errors={fields.firstName.errors}
 				/>
 				<Field
 					className="col-span-3"
-					labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-					inputProps={getInputProps(fields.name, { type: 'text' })}
-					errors={fields.name.errors}
+					labelProps={{ htmlFor: fields.lastName.id, children: 'Nom' }}
+					inputProps={getInputProps(fields.lastName, { type: 'text' })}
+					errors={fields.lastName.errors}
 				/>
 			</div>
 

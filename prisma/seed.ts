@@ -14,7 +14,8 @@ async function seed() {
 			select: { id: true },
 			data: {
 				username: 'damien',
-				name: 'Damien Q',
+				firstName: 'Damien',
+				lastName: 'Quinton',
 				email: 'test@raywom.com',
 				password: { create: createPassword('damien') },
 				roles: { connect: { name: 'user' } },
